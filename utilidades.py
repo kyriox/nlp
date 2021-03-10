@@ -24,10 +24,10 @@ def euclidiana(x,y):
 
 #distancia coseno
 def coseno(x,y):
-    sim=np.dot(x, y.T) / (sp.linalg.norm(x) * sp.linalg.norm(y))[0,0]
+    sim=np.dot(x, y.T) / (np.linalg.norm(x) * np.linalg.norm(y))
     # si los vectores ya están normalizados se podría utilizar la siguente linea
     #dist=np.dot(x, y.T)[0,0]
-    return sim
+    return 1-sim
 
 # Función para graficar clusters en dos y tres dimensiones
 def plotClusters(data,labels,centroids={},f="",centroids_txt_labels={}):
@@ -70,7 +70,7 @@ def plotPCA(data, labels=[]):
     pca.fit(data)
     X=pca.transform(data)
     n=len(X)
-    if not labels:
+    if len(labels)==0:
         labels=[f"doc_{i}" for i in range(n)]
     origin2d=[0 for x in range(n)]
     origin3d=[0],[0],[0]
@@ -84,6 +84,34 @@ def plotPCA(data, labels=[]):
     plt.xlim(xm-0.1,xM+0.1)
     plt.ylim(ym-0.1,yM+0.1)
 
+#Método bruto para calcular  atriz de cocurrencia de palabrar 
+def cocurrency_matrix(sentences):
+    voc=list(set(list(itertools.chain.from_iterable(sentences))))
+    voc.sort()
+    V=len(voc)
+    matrix=pd.DataFrame(index=voc,columns=voc,data=np.zeros((V,V)))
+    for word in voc:
+        for sentence in sentences:
+            if word in sentence:
+                for col in set(sentence):
+                    matrix[word][col]+=1
+                    #if col!=word:
+                    #    matrix[col][word]=matrix[col][word]+1
+    return np.array(voc),matrix
+
+#Para tokenizar una lista de textos                            
+def tokenize_sentences(texts):
+    tokenized_texts=[preprocess(txt) for txt in texts]
+    return np.array(tokenized_texts,dtype=object)
+
+# Preprocesamiento simple
+def preprocess(sentence):
+     st=sentence.lower()
+     st=re.sub(r"http\S+", "", st)
+     st=st.translate(punctuation_table)   
+     st=unicodedata.normalize('NFKD', st).encode('ASCII', 'ignore').decode()
+     tokens=[word for word in word_tokenize(st) if word not in stop_words]
+     return tokens
     
     
 
